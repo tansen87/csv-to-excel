@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using MiniExcelLibs;
+using MiniExcelLibs.OpenXml;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -65,19 +66,35 @@ namespace EAT
             Process.Start(psi);
         }
 
-        private void BtnSheet_Click(object sender, RoutedEventArgs e)
+        private async void BtnSheet_Click(object sender, RoutedEventArgs e)
         {
             if (selectedFiles == null || selectedFiles.Length == 0)
             {
                 display.Text += $"{DateTime.Now.ToString()} => Error:\nNo file open. Please select a file.\n";
                 return;
             }
-            var sheetnames = MiniExcel.GetSheetNames(selectedFiles[0]);
-            var sheetname = string.Join("/", sheetnames);
-            string filename = System.IO.Path.GetFileName(selectedFiles[0]);
-            int dashCount = 68;
-            string dashes = new('-', dashCount);
-            display.Text += $"{filename} - SheetName\n{sheetname}\n{dashes}\n";
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var sheetnames = MiniExcel.GetSheetNames(selectedFiles[0]);
+                    var sheetname = string.Join("/", sheetnames);
+                    string filename = System.IO.Path.GetFileName(selectedFiles[0]);
+                    int dashCount = 68;
+                    string dashes = new('-', dashCount);
+                    display.Dispatcher.Invoke(() =>
+                    {
+                        display.Text += $"{filename} - SheetName\n{sheetname}\n{dashes}\n";
+                    });
+                }
+                catch (Exception ex)
+                {
+                    display.Dispatcher.Invoke(() =>
+                    {
+                        display.Text += $"{DateTime.Now.ToString()} => Error:\n{ex}\n";
+                    });
+                }
+            });
         }
     }
 }
